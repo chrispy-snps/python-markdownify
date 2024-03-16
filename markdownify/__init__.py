@@ -152,8 +152,15 @@ class MarkdownConverter(object):
     def process_text(self, el):
         text = six.text_type(el) or ''
 
-        # normalize whitespace if we're not inside a preformatted element
-        if not el.find_parent('pre'):
+        # normalize whitespace using the following rules (highest precedence first):
+        # - in table cell - normalize whitespace (spaces and linefeeds)
+        # - in preformatted block - keep whitespace as-is
+        # - in anything else - normalize whitespace (spaces only)
+        if el.find_parent('td'):
+            text = all_whitespace_re.sub(' ', text)
+        elif el.find_parent('pre'):
+            pass
+        else:
             text = whitespace_re.sub(' ', text)
 
         # escape special characters if we're not inside a preformatted or code element
